@@ -1,7 +1,6 @@
-import resources.GamePanel;
+import panels.GamePanel;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class Spacewar extends JFrame{
 
