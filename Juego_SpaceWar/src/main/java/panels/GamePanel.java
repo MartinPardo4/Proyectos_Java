@@ -1,8 +1,6 @@
 package panels;
 
-import resources.Bullet;
-import resources.Meteor;
-import resources.Player;
+import resources.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,8 +23,12 @@ public class GamePanel extends JPanel {
     private final int MET_SIZE = 20;
     private final int DELAY = 10;
     private final int SHOOTING_DELAY = 500;
-    private int meteors_delay;
 
+    private int meteors_delay;
+    private int count_meteors_1 = 0;
+    private int count_meteors_2 = 0;
+    private int meteors_between_1 = new Random().nextInt(7, 16);
+    private int meteors_between_2 = new Random().nextInt(3, 6);
 
     private boolean right_direction = false;
     private boolean left_direction = false;
@@ -46,6 +48,8 @@ public class GamePanel extends JPanel {
 
     private int points = 0;
     private int lives = 3;
+
+    private Color colorPlayer = new Color(200, 150, 100);
 
 
     public GamePanel(){
@@ -69,6 +73,7 @@ public class GamePanel extends JPanel {
     public void initGame(){
 
         Random random = new Random();
+
 
         timer = new Timer(DELAY, new ActionListener() {
             @Override
@@ -115,11 +120,13 @@ public class GamePanel extends JPanel {
         super.paintComponent(g);
 
         doDrowing(g);
+
+        colorPlayer = new Color(200, 150, 100);
     }
 
     public void doDrowing(Graphics g){
         if(inGame){
-            player.draw(g);
+            player.draw(g, colorPlayer);
             showPoints(g);
             showLives(g);
             for (Bullet bullet : bullets) {
@@ -185,9 +192,11 @@ public class GamePanel extends JPanel {
                 if (areRectanglesTouching(bullet.getX(), bullet.getY(), DOT_SIZE, DOT_SIZE, meteor.getX(), meteor.getY(),
                         DOT_SIZE*2, DOT_SIZE*2)) {
                     bullets.remove(i);
-                    meteors.remove(j);
-
-                    points++;
+                    meteor.reciveDamage();
+                    if(meteor.getLife() == 0){
+                        meteors.remove(j);
+                        points++;
+                    }
                 }
             }
         }
@@ -196,8 +205,14 @@ public class GamePanel extends JPanel {
             Meteor meteor = meteors.get(k);
             if(isTriangleCollidingWithRectangle(xPoints, yPoints, meteor.getX(), meteor.getY(),
                     DOT_SIZE*2, DOT_SIZE*2)){
+                if(meteor instanceof Meteor_life){
+                    lives++;
+                }
+                else{
+                    lives--;
+                }
+                paintPlayer();
                 meteors.remove(k);
-                lives--;
             }
         }
 
@@ -252,17 +267,40 @@ public class GamePanel extends JPanel {
 
     public void locateMeteor(){
         Random random = new Random();
-
-        int x_meteor = random.nextInt(400);
+        int x_meteor = random.nextInt(50, 350);
         int y_meteor = 0;
 
-        meteors.add(new Meteor(x_meteor, y_meteor, DOT_SIZE*2));
+        if(meteors_between_2 == count_meteors_2){
+            meteors.add(new StrongMeteor(x_meteor, y_meteor, DOT_SIZE*3));
+            count_meteors_2 = 0;
+            meteors_between_2 = random.nextInt(3,6);
+            count_meteors_1++;
+        }
+        else if(meteors_between_1 == count_meteors_1){
+            meteors.add(new Meteor_life(x_meteor, y_meteor, DOT_SIZE*2));
+            count_meteors_1 = 0;
+            meteors_between_1 = random.nextInt(6, 17);
+            count_meteors_2++;
+        }
+        else{
+            meteors.add(new Meteor(x_meteor, y_meteor, DOT_SIZE*2));
+            count_meteors_1++;
+            count_meteors_2++;
+        }
+
     }
 
     public void shoot(){
         int x_bullet = player.getXPoints()[1] - 5;
         int y_bullet = player.getYPoints()[1] - 10;
         bullets.add(new Bullet(x_bullet, y_bullet, DOT_SIZE));
+
+    }
+
+    private void paintPlayer(){
+
+        colorPlayer = new Color(200, 100, 100);
+        repaint();
 
     }
 

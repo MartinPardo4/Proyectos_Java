@@ -14,8 +14,8 @@ public class Player {
         this.nPoints = nPoints;
     }
 
-    public void draw(Graphics g) {
-        g.setColor(new Color(200, 150, 100));
+    public void draw(Graphics g, Color color) {
+        g.setColor(color);
         g.fillPolygon(xPoints, yPoints, nPoints);
     }
 
