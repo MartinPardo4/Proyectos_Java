@@ -24,6 +24,8 @@ public class GamePanel extends JPanel {
     private final int DELAY = 10;
     private final int SHOOTING_DELAY = 500;
 
+    private int meteors_delay_min;
+    private int meteors_delay_max;
     private int meteors_delay;
     private int count_meteors_1 = 0;
     private int count_meteors_2 = 0;
@@ -74,6 +76,8 @@ public class GamePanel extends JPanel {
 
         Random random = new Random();
 
+        meteors_delay_min = 1000;
+        meteors_delay_max = 4000;
 
         timer = new Timer(DELAY, new ActionListener() {
             @Override
@@ -98,14 +102,15 @@ public class GamePanel extends JPanel {
             }
         });
 
-        meteors_delay = random.nextInt(4000) + 2000;
+        meteors_delay = random.nextInt(2000,6000);
 
         meteorsTimer = new Timer(meteors_delay, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 locateMeteor();
 
-                meteors_delay = random.nextInt(3000) + 1000;
+                meteors_delay = random.nextInt(meteors_delay_min, meteors_delay_max);
+                System.out.println(meteors_delay);
                 meteorsTimer.setDelay(meteors_delay);
 
             }
@@ -145,6 +150,10 @@ public class GamePanel extends JPanel {
 
     private void gameOver(Graphics g) {
 
+        timer.stop();
+        shootingTimer.stop();
+        meteorsTimer.stop();
+
         String msgGameOver = "Game Over";
         String msgPlayAgain = "Press \"enter\" to play again";
 
@@ -160,6 +169,8 @@ public class GamePanel extends JPanel {
     }
 
     private void reboot(){
+
+        initGame();
 
         xPoints = x.clone();
         yPoints = y.clone();
@@ -178,12 +189,26 @@ public class GamePanel extends JPanel {
 
     public void checkCollision(){
 
+        checkWallCollision();
+        checkBulletCollision();
+        checkMeteorCollision();
+
+        if(lives == 0){
+            inGame = false;
+        }
+    }
+
+
+    private void checkWallCollision(){
         if(xPoints[0] <= 0){
             left_direction = false;
         }
         if(xPoints[2] >= P_WIDTH){
             right_direction = false;
         }
+    }
+
+    private void checkBulletCollision(){
 
         for (int i = bullets.size() - 1; i >= 0; i--) {
             Bullet bullet = bullets.get(i);
@@ -196,10 +221,14 @@ public class GamePanel extends JPanel {
                     if(meteor.getLife() == 0){
                         meteors.remove(j);
                         points++;
+                        accelerateMeteors();
                     }
                 }
             }
         }
+    }
+
+    private void checkMeteorCollision(){
 
         for(int k=meteors.size() - 1; k >= 0; k--){
             Meteor meteor = meteors.get(k);
@@ -215,11 +244,8 @@ public class GamePanel extends JPanel {
                 meteors.remove(k);
             }
         }
-
-        if(lives == 0){
-            inGame = false;
-        }
     }
+
 
     private void showPoints(Graphics g) {
 
@@ -302,6 +328,30 @@ public class GamePanel extends JPanel {
         colorPlayer = new Color(200, 100, 100);
         repaint();
 
+    }
+
+    private void accelerateMeteors(){
+        if(points == 10){
+            meteors_delay_min -= 100;
+            meteors_delay_max -= 100;
+        } else if (points == 25) {
+            meteors_delay_min -= 200;
+            meteors_delay_max -= 200;
+        } else if (points == 35) {
+            meteors_delay_min -= 200;
+            meteors_delay_max -= 200;
+        } else if (points == 40) {
+            meteors_delay_min -= 100;
+            meteors_delay_max -= 100;
+        } else if (points == 45) {
+            meteors_delay_min -= 150;
+            meteors_delay_max -= 250;
+        } else if (points == 50) {
+            meteors_delay_min -= 150;
+            meteors_delay_max -= 500;
+        } else if (points > 50 && points % 5 == 0 && meteors_delay_max > 100) {
+            meteors_delay_max -= 100;
+        }
     }
 
     public static boolean areRectanglesTouching(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2) {
